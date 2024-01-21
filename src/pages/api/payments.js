@@ -17,6 +17,7 @@ export default async function handler(req, res) {
     const ghoPayContract = new ethers.Contract(ghoPayAddress, ghoPayABI, wallet)
     
     const payment = await ghoPayContract.sendGho(_from, _to, ethers.utils.parseEther(amount))
+    await payment.wait()
     console.log(payment)
     res.status(200).json({ message: 'Payment successful' });
 

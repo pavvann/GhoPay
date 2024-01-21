@@ -3,6 +3,8 @@ import Image from 'next/image';
 import { useAccount } from "wagmi";
 import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
+import { motion, AnimatePresence } from 'framer-motion';
+
 import { ghoPayABI, ghoPayAddress } from '@/constants';
 import { ConnectKitButton } from "connectkit";
 import { QRCodeCanvas } from 'qrcode.react';
@@ -15,6 +17,21 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [showQR, setShowQR] = useState(false); // State for showing QR code
   const [qrData, setQrData] = useState('');
+  const [showGho, setShowGho] = useState(true); // State to toggle between images
+  
+  
+  const fadeVariants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+  };
+
+  useState(() => {
+    const interval = setInterval(() => {
+      setShowGho((prev) => !prev);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const checkUserStatus = async () => {
 
@@ -78,7 +95,29 @@ export default function Home() {
 
       <div className="flex flex-col items-center justify-center min-h-screen space-y-4 bg-white bg-opacity-20 p-6 rounded-lg shadow-lg">
         <div className="w-full max-w-md">
-          <Image src="/gho.png" alt="Gho" width={1000} height={1000} />
+          {/* <Image src="/gho.png" alt="Gho" width={1000} height={1000} /> */}
+          <div className="relative w-[455px] h-[200px]">
+        <motion.div
+          key="gho"
+          initial="initial"
+          animate={showGho ? "animate" : "exit"}
+          variants={fadeVariants}
+          transition={{ duration: 1.5 }}
+          className="absolute inset-0 flex items-center justify-center"
+        >
+          <Image src="/gho.png" alt="Gho" layout="fill" objectFit="contain" />
+        </motion.div>
+        <motion.div
+          key="upi"
+          initial="initial"
+          animate={!showGho ? "animate" : "exit"}
+          variants={fadeVariants}
+          transition={{ duration: 1.5 }}
+          className="absolute inset-0 flex items-center justify-center"
+        >
+          <Image src="/upi.png" alt="UPI" layout="fill" objectFit="contain" />
+        </motion.div>
+      </div>
           <input
             type="text"
             placeholder={isNewUser ? "Enter VPA" : "Enter amount"}

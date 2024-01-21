@@ -1,18 +1,35 @@
 // In your Next.js component
 import Image from 'next/image';
 import { useAccount } from "wagmi";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
+import { ghoPayABI, ghoPayAddress } from '@/constants';
 import { ConnectKitButton } from "connectkit";
 import { QRCodeCanvas } from 'qrcode.react';
 
 export default function Home() {
   const { address, isConnecting, isDisconnected } = useAccount();
-  const [amount, setAmount] = useState('');
+  const [isNewUser, setIsNewUser] = useState(true);
+  const [input, setInput] = useState('');
   const [currency, setCurrency] = useState('GHO');
   const [loading, setLoading] = useState(false);
   const [showQR, setShowQR] = useState(false); // State for showing QR code
   const [qrData, setQrData] = useState('');
+
+  const checkUserStatus = async () => {
+
+    const provider = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_URL)
+    const wallet = new ethers.Wallet(process.env.NEXT_PUBLIC_PRIVATE_KEY, provider)
+    console.log(wallet.address)
+    const ghoPayContract = new ethers.Contract(ghoPayAddress, ghoPayABI, wallet)
+    const upiId = await ghoPayContract.getUpi(address);
+    if (upiId === '') {
+      setIsNewUser(true);
+    } else {
+      setIsNewUser(false);
+    }
+
+  }
 
 
   const toggleCurrency = async () => {
@@ -22,15 +39,31 @@ export default function Home() {
   }
   const handleSubmit = async () => {
     setLoading(true);
+    if (isNewUser) {
+      const provider = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_URL)
+      const wallet = new ethers.Wallet(process.env.NEXT_PUBLIC_PRIVATE_KEY, provider)
+      console.log(wallet.address)
+      const ghoPayContract = new ethers.Contract(ghoPayAddress, ghoPayABI, wallet)
+      const tx = await ghoPayContract.setupiId(address, input);
+      console.log(tx);
+      setIsNewUser(false);
+      setLoading(false);
+      return;
+    }
     console.log(currency)
-    const paymentURl = 'https://gho-pay.vercel.app/api/payments' + '?from=' + '0x21e98C4e14F49B225d3208e530ECdf387c5A8670' + '&to=' + address + '&amount=' + amount + '&currency=' + currency;
+    const paymentURl = 'https://gho-pay.vercel.app/api/payments' + '?from=' + '0x21e98C4e14F49B225d3208e530ECdf387c5A8670' + '&to=' + address + '&amount=' + input + '&currency=' + currency;
     console.log(paymentURl)
     setQrData(paymentURl);
     setShowQR(true); // Show QR code
+    setLoading(false)
   }
   const closeQR = () => {
     setShowQR(false); // Hide QR code when you need to
   };
+
+  useEffect(() => {
+    checkUserStatus();
+  }, [address]);
 
   return (
 
@@ -48,9 +81,9 @@ export default function Home() {
           <Image src="/gho.png" alt="Gho" width={1000} height={1000} />
           <input
             type="text"
-            placeholder="Enter amount"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            placeholder={isNewUser ? "Enter VPA" : "Enter amount"}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
             className="input w-full text-lg py-2 px-4 bg-white bg-opacity-90 rounded shadow text-black"
           />
         </div>
@@ -61,7 +94,7 @@ export default function Home() {
         </div>
         <div className="w-full max-w-md">
           <button onClick={handleSubmit} className="btn w-full text-lg py-2 px-4 bg-gradient-to-r from-[#3eadc0] to-[#a75ca4] hover:bg-[#a75ca4] rounded shadow text-white transition-colors duration-300">
-            {loading ? <span className="loading loading-spinner"></span> : "Let's GhoPay"}
+            {loading ? <span className="loading loading-spinner"></span> : (isNewUser ? "Set UPI VPA" : "Let's GhoPay")}
           </button>
           {showQR && (
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">

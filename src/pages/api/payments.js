@@ -18,12 +18,27 @@ export default async function handler(req, res) {
     
     const payment = await ghoPayContract.sendGho(_from, _to, ethers.utils.parseEther(amount))
     console.log(payment)
+    res.status(200).json({ message: 'Payment successful' });
+
+    }
+
+    else {
+      const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL)
+      const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider)
+      console.log(wallet.address)
+      const ghoPayContract = new ethers.Contract(ghoPayAddress, ghoPayABI, wallet)
+      const upiId = await ghoPayContract.getUpi(_to);
+      const payment = await ghoPayContract.sendSelf(_from, ethers.utils.parseEther(amount))
+      console.log(payment)
+    res.status(200).json({ message: 'Payment successful to ' + upiId });
+
+      
+      // pay via upi
     }
 
     console.log('QR Code Scanned!')
 
     // Send a response to the client
-    res.status(200).json({ message: 'Payment successful' });
   } else {
     // Handle any other HTTP methods, or return a method not allowed error.
     res.setHeader('Allow', ['GET']);

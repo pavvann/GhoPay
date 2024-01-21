@@ -1,26 +1,78 @@
 // In your Next.js component
 import Image from 'next/image';
 import { useAccount } from "wagmi";
+import { useState } from 'react';
 import { ConnectKitButton } from "connectkit";
+import { QRCodeCanvas } from 'qrcode.react';
 
 export default function Home() {
   const { address, isConnecting, isDisconnected } = useAccount();
+  const [currency, setCurrency] = useState('GHO');
+  const [loading, setLoading] = useState(false);
+  const [showQR, setShowQR] = useState(false); // State for showing QR code
+  const [qrData, setQrData] = useState('');
+
+
+  const toggleCurrency = async () => {
+    setCurrency(currency === 'GHO' ? 'INR' : 'GHO');
+    console.log("curremcy changed")
+
+  }
+  const handleSubmit = async () => {
+    setLoading(true);
+    console.log(currency)
+    setQrData('Yasdf');
+    setTimeout( 5000)
+    setShowQR(true); // Show QR code
+  }
+  const closeQR = () => {
+    setShowQR(false); // Hide QR code when you need to
+  };
 
   return (
-    <div className="relative">
+
+    <div className="relative bg-[#85787A]">
+      <div className="absolute top-1 left-4">
+        <p style={{ fontFamily: "'Moirai One', sans-serif", fontSize: "3rem", fontWeight: "bolder", color: 'black' }}>GhoPay</p>
+      </div>
       <div className="absolute top-4 right-4">
         <ConnectKitButton />
       </div>
-      <div className="absolute top-1 left-4">
-        {/* Apply the font directly to GhoPay text */}
-        <p style={{ fontFamily: "'Moirai One', sans-serif", fontSize: "3rem", fontWeight:"bolder" }}>GhoPay</p>
-      </div>
-      
+
+
+      <form onSubmit={handleSubmit} className="flex flex-col items-center justify-center min-h-screen space-y-4 bg-white bg-opacity-20 p-6 rounded-lg shadow-lg">
+        <div className="w-full max-w-md">
+          <Image src="/gho.png" alt="Gho" width={1000} height={1000} />
+          <input type="text" placeholder="Enter amount" className="input w-full text-lg py-2 px-4 bg-white bg-opacity-90 rounded shadow text-black" />
+        </div>
+        <div className="flex items-center justify-center w-full max-w-md">
+          <p className="text-lg text-white">$GHO</p>
+          <input type="checkbox" className="toggle toggle-accent mx-2" onClick={toggleCurrency} />
+          <p className="text-lg text-white">₹INR</p>
+        </div>
+        <div className="w-full max-w-md">
+          <button className="btn w-full text-lg py-2 px-4 bg-gradient-to-r from-[#3eadc0] to-[#a75ca4] hover:bg-[#a75ca4] rounded shadow text-white transition-colors duration-300">
+            {loading ? <span className="loading loading-spinner"></span> : "Let's GhoPay"}
+          </button>
+          {showQR && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="bg-white p-4 rounded-lg">
+                <QRCodeCanvas value={qrData} size={256} />
+                <br/>
+                <button onClick={closeQR} className="btn w-full text-lg py-2 px-4 bg-gradient-to-r from-[#3eadc0] to-[#a75ca4] hover:bg-[#a75ca4] rounded shadow text-white transition-colors duration-300">
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </form>
+
+
+
     </div>
   );
 }
-
-
 
 async function signPermit() {
 
@@ -29,15 +81,15 @@ async function signPermit() {
   const signer = provider.getSigner();
   console.log(signer)
   console.log(await signer.getAddress())
- 
-  const ghoTokenAddress = '0xc4bF5CbDaBE595361438F8c6a187bDc330539c60'; 
+
+  const ghoTokenAddress = '0xc4bF5CbDaBE595361438F8c6a187bDc330539c60';
   const ghoTokenAbi = ghoABI;
   const ghoTokenContract = new ethers.Contract(ghoTokenAddress, ghoTokenAbi, signer);
   console.log(ghoTokenContract)
 
   // Permit parameters
   const owner = address;
-  const spender = '0x21e98C4e14F49B225d3208e530ECdf387c5A8670'; 
+  const spender = '0x21e98C4e14F49B225d3208e530ECdf387c5A8670';
   const value = ethers.utils.parseUnits('10', 18); // The amount of GHO tokens to permit
   const nonce = await ghoTokenContract.nonces(owner);
   const deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
@@ -106,3 +158,6 @@ async function signPermit() {
   // // Check the transaction receipt for success
   console.log(receipt);
 }
+
+
+

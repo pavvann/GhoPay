@@ -30,10 +30,8 @@ export default async function handler(req, res) {
       const upiId = await ghoPayContract.getUpi(_to);
       const payment = await ghoPayContract.sendSelf(_from, ethers.utils.parseEther(amount))
       console.log(payment)
-    res.status(200).json({ message: 'Payment successful to ' + upiId });
-
+      res.status(200).json({ message: 'Payment successful to ' + upiId });
       
-      // pay via upi
     }
 
     console.log('QR Code Scanned!')

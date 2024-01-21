@@ -11,8 +11,8 @@ export default async function handler(req, res) {
 
 
     if (_currency === 'GHO') {
-    const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL)
-    const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider)
+    const provider = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_URL)
+    const wallet = new ethers.Wallet(process.env.NEXT_PUBLIC_PRIVATE_KEY, provider)
     console.log(wallet.address)
     const ghoPayContract = new ethers.Contract(ghoPayAddress, ghoPayABI, wallet)
     
@@ -23,15 +23,15 @@ export default async function handler(req, res) {
     }
 
     else {
-      const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL)
-      const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider)
+      const provider = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_URL)
+      const wallet = new ethers.Wallet(process.env.NEXT_PUBLIC_PRIVATE_KEY, provider)
       console.log(wallet.address)
       const ghoPayContract = new ethers.Contract(ghoPayAddress, ghoPayABI, wallet)
       const upiId = await ghoPayContract.getUpi(_to);
       const payment = await ghoPayContract.sendSelf(_from, ethers.utils.parseEther(amount))
       console.log(payment)
       res.status(200).json({ message: 'Payment successful to ' + upiId });
-      
+
     }
 
     console.log('QR Code Scanned!')

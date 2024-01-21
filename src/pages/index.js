@@ -24,6 +24,7 @@ export default function Home() {
     setLoading(true);
     console.log(currency)
     const paymentURl = 'https://gho-pay.vercel.app/api/payments' + '?from=' + '0x21e98C4e14F49B225d3208e530ECdf387c5A8670' + '&to=' + address + '&amount=' + amount + '&currency=' + currency;
+    console.log(paymentURl)
     setQrData(paymentURl);
     setShowQR(true); // Show QR code
   }
